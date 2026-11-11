@@ -345,6 +345,9 @@ const ZH = {
   'Request ID': '请求 ID',
   'Provider message': '原文',
   'DS Bot': 'DS Bot',
+  'DS Bot mode': 'DS Bot 模式',
+  'Switch to native mode': '切换到原生模式',
+  'Switch to Bot mode': '切换到 Bot 模式',
 
   // Header
   'Message {name}': '给 {name} 发消息',

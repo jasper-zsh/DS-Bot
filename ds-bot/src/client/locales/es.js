@@ -1,6 +1,9 @@
 // Spanish (es) localization for DS Bot client and DSH settings namespaces.
 
 export const ES = {
+  "DS Bot mode": "Modo DS Bot",
+  "Switch to native mode": "Cambiar al modo nativo",
+  "Switch to Bot mode": "Cambiar al modo Bot",
   "Android beta": "Android beta",
   "Cannot reach the Server. Trying again…": "No se puede conectar con el servidor. Reintentando…",
   "No phones yet": "Aún no hay teléfonos",

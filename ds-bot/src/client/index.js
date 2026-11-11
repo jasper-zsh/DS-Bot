@@ -7,7 +7,7 @@ import { themeCss, shellTokens, registry, registerShape, registerTheme, allTheme
 import { MENTION_ORIGIN, currentPart } from './text.js'
 import { SHELL_CSS, CONVERSATION_CSS, botOwnCss, installStyles, installCompiledStyles } from './styles.js'
 import { lookOf } from './mark.js'
-import { TeamSidebar, YouAvatar, AccountLauncher, FooterAccount, BrandMark, BrandName, BotReturn, SIDEBAR_CSS, RETURN_CSS, holdShellShortcuts } from './sidebar.js'
+import { TeamSidebar, YouAvatar, AccountLauncher, FooterAccount, BrandMark, BrandName, SurfaceToggle, SIDEBAR_CSS, SURFACE_TOGGLE_CSS, holdShellShortcuts } from './sidebar.js'
 import { installSettingsShell, SETTINGS_SHELL_CSS } from './settings-shell.js'
 import { frameLayout, readSidebar, writeSidebar, toggledPref, DSH_NARROW } from './frame-layout.js'
 import { installFrameWatch } from './frame-watch.js'
@@ -465,7 +465,7 @@ export function apply(ctx) {
   // including a cold start, where no setSurface call ever fires.
   const homeToMainBot = () => {
     const snapshot = roster.getSnapshot()
-    if (!snapshot.ready || !snapshot.mainBotId) return
+    if (!snapshot.ready || !snapshot.mainBotId || surface.getSnapshot().mode !== 'bot') return
     const main = mainView()
     if (main !== undefined && snapshot.byId[main] === undefined && snapshot.roomsById[main] === undefined) {
       actions.openSession(snapshot.mainBotId)
@@ -1152,10 +1152,10 @@ export function apply(ctx) {
     // its cell; it lists only the sends the user authored (#663).
     () => shadow('conversation.input.dock', { id: 'queue', order: 20, priority: BOT_PRIORITY, inject: queueFace }, QueueDock),
   ]
-  // The return button belongs to neither group: it renders only in Agent mode.
-  ctx.effect(() => installCompiledStyles(RETURN_CSS, 'return'), 'ds-bot: return styles')
+  // The mode toggle and its styles survive withdrawal of either surface group.
+  ctx.effect(() => installCompiledStyles(SURFACE_TOGGLE_CSS, 'surface-toggle'), 'ds-bot: surface toggle styles')
   ctx.effect(() => installCompiledStyles(COMPUTER_CSS, 'computer'), 'ds-bot: computer styles')
-  shadow('sidebar.footer.action', { id: 'bot-return', order: -300, inject: face }, BotReturn)
+  shadow('shell.overlay', { id: 'bot-surface-toggle', order: 70, inject: face }, SurfaceToggle)
 
   // The main view decides `plain`: a DSH Agent Session keeps the Bot shell but
   // withdraws the conversation replacements, so the native dsh page shows. A jump
