@@ -92,3 +92,19 @@ export function readMode(storage = globalThis.localStorage) {
 export function writeMode(mode, storage = globalThis.localStorage) {
   try { storage.setItem(STORAGE.surface, mode) } catch { /* storage unavailable */ }
 }
+
+// The return destination belongs to this tab, not every window using this profile.
+export function readReturnSession(storage) {
+  try {
+    const id = (storage ?? globalThis.sessionStorage).getItem(STORAGE.surfaceReturn)
+    return typeof id === 'string' && id.trim() !== '' ? id : null
+  } catch { return null }
+}
+
+export function writeReturnSession(id, storage) {
+  try {
+    const store = storage ?? globalThis.sessionStorage
+    if (typeof id === 'string' && id.trim() !== '') store.setItem(STORAGE.surfaceReturn, id)
+    else store.removeItem(STORAGE.surfaceReturn)
+  } catch { /* storage unavailable: the current page keeps its in-memory destination */ }
+}

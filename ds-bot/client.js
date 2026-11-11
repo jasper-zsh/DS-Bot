@@ -14715,6 +14715,7 @@ var STORAGE = {
   seen: "ds-bot:seen",
   prefs: "ds-bot:prefs",
   surface: "ds-bot:surface",
+  surfaceReturn: "ds-bot:surface-return-session",
   surfacePosition: "ds-bot:surface-position",
   agentSessions: "ds-bot:agent-sessions",
   browserWidth: "ds-bot:browser-width",
@@ -36292,6 +36293,22 @@ function writeMode(mode, storage = globalThis.localStorage) {
   } catch {
   }
 }
+function readReturnSession(storage) {
+  try {
+    const id = (storage ?? globalThis.sessionStorage).getItem(STORAGE.surfaceReturn);
+    return typeof id === "string" && id.trim() !== "" ? id : null;
+  } catch {
+    return null;
+  }
+}
+function writeReturnSession(id, storage) {
+  try {
+    const store = storage ?? globalThis.sessionStorage;
+    if (typeof id === "string" && id.trim() !== "") store.setItem(STORAGE.surfaceReturn, id);
+    else store.removeItem(STORAGE.surfaceReturn);
+  } catch {
+  }
+}
 
 // src/client/header-navigation.js
 var navigationEntry = (entries2) => entries2.find((entry) => entry.store && typeof entry.inject === "function");
@@ -41133,32 +41150,48 @@ function noticeApprovals({ work, roster, shownSession, openSession, since = Date
 function listedOpener({ list, open, refresh, current }) {
   let drop = () => {
   };
-  return (target) => {
-    drop();
+  const cancel = () => {
+    const stop = drop;
     drop = () => {
     };
-    const listed = () => list.getSnapshot().byId?.[target] !== void 0;
+    stop();
+  };
+  const show2 = (target, { valid = () => true, timeout = 0 } = {}) => {
+    cancel();
+    if (!valid()) return;
+    const listed = () => Object.hasOwn(list.getSnapshot().byId ?? {}, target);
     if (listed()) {
       open(target);
       return;
     }
     const from = current?.();
-    const off = list.subscribe(() => {
-      if (current?.() !== from) {
-        off();
-        drop = () => {
-        };
+    let active = true;
+    let timer = 0;
+    let off = () => {
+    };
+    const stop = () => {
+      active = false;
+      off();
+      clearTimeout(timer);
+      if (drop === stop) drop = () => {
+      };
+    };
+    off = list.subscribe(() => {
+      if (!active) return;
+      if (!valid() || current?.() !== from) {
+        stop();
         return;
       }
       if (!listed()) return;
-      off();
-      drop = () => {
-      };
-      open(target);
+      stop();
+      if (valid()) open(target);
     });
-    drop = off;
+    drop = stop;
+    if (timeout > 0) timer = setTimeout(stop, timeout);
     refresh?.();
   };
+  show2.cancel = cancel;
+  return show2;
 }
 
 // src/client/agent-new.js
@@ -41199,6 +41232,8 @@ function apply(ctx) {
   const sidebarPref = createSource(sidebarSaved.pref);
   const frame = createSource({ viewport: typeof window === "undefined" ? 0 : window.innerWidth, sidebarWidth: sidebarSaved.width, collapsedWidth: 0, collapsed: false });
   const surface = createSource({ mode: readMode(), plain: false });
+  let surfaceRevision = 0;
+  let returnSession = readReturnSession();
   const settingsShellHeld = createSource(false);
   let settingsShell = null;
   let agentSessionCache = /* @__PURE__ */ new Set();
@@ -41577,6 +41612,8 @@ function apply(ctx) {
     return frameLayout({ viewport: f.viewport, sidebarWidth: f.sidebarWidth, pref: sidebarPref.getSnapshot(), drawer: state.leftDrawer, panel: { view: view ?? state.view, yielded: state.panelYield === true } }).panel === "folded";
   };
   const yieldBrowser = (state) => state.panelYield === true || panelFolded("browser");
+  let stopBotHome = () => {
+  };
   const homeToMainBot = () => {
     const snapshot = roster.getSnapshot();
     if (!snapshot.ready || !snapshot.mainBotId || surface.getSnapshot().mode !== "bot") return;
@@ -41586,15 +41623,30 @@ function apply(ctx) {
     }
   };
   const ensureBotHome = () => {
+    stopBotHome();
     if (roster.getSnapshot().ready) homeToMainBot();
     else {
-      const off = roster.subscribe(() => {
-        if (!roster.getSnapshot().ready) return;
+      const revision = surfaceRevision;
+      let active = true;
+      const stop = () => {
+        active = false;
         off();
-        homeToMainBot();
+        if (stopBotHome === stop) stopBotHome = () => {
+        };
+      };
+      const off = roster.subscribe(() => {
+        if (!active || !roster.getSnapshot().ready) return;
+        stop();
+        if (revision === surfaceRevision) homeToMainBot();
       });
+      stopBotHome = stop;
     }
   };
+  ctx.effect(() => () => {
+    surfaceRevision += 1;
+    stopBotHome();
+    show2.cancel();
+  }, "ds-bot: session navigation");
   const actions = {
     ...teamActions({ call, after, partFor, roster, ui: ui2, live, cards, heldCards, turnClock, panelFolded }),
     learningAnswer: (id, approve) => after(call("learning-answer", { id, approve })),
@@ -41672,12 +41724,16 @@ function apply(ctx) {
     // `last` is the Bot conversation the view held before it cleared: when that part
     // was archived for a fresh one, the view goes on in the fresh one.
     landOn: async (id, last) => {
+      const revision = surfaceRevision;
+      const valid = () => surface.getSnapshot().mode === "bot" && surfaceRevision === revision;
+      if (!valid()) return;
       if (last) await pull().catch(() => {
       });
+      if (!valid()) return;
       const bot = last ? roster.getSnapshot().byId[last.botId] : void 0;
       setPlain(false);
       const target = bot && currentPart(bot) !== last.sessionId ? currentPart(bot) : partFor(id);
-      show2(target);
+      show2(target, { valid });
     },
     selectPanel: (id) => {
       ctx.layout.selectPanel(id);
@@ -41713,13 +41769,23 @@ function apply(ctx) {
         if (mode === "bot") ensureBotHome();
         return;
       }
-      if (mode === "agent") {
+      surfaceRevision += 1;
+      stopBotHome();
+      show2.cancel();
+      if (mode === "bot") {
+        returnSession = mainView() ?? null;
+        writeReturnSession(returnSession);
+      } else {
         ui2.set((state) => ({ ...state, details: null, view: "details", settings: null, palette: null, newChat: null, menu: null, voice: null, exchange: null, memory: null, toast: null }));
       }
       writeMode(mode);
       surface.set((state) => ({ ...state, mode }));
       if (mode === "agent" && window.innerWidth >= DSH_NARROW && frame.getSnapshot().collapsed) ctx.layout.toggleSidebar();
-      if (mode !== "bot") return;
+      if (mode === "agent") {
+        const revision = surfaceRevision;
+        if (returnSession) show2(returnSession, { valid: () => surface.getSnapshot().mode === "agent" && surfaceRevision === revision, timeout: 1e4 });
+        return;
+      }
       ensureBotHome();
     },
     markUnread: (id) => writeUnread(id, true),

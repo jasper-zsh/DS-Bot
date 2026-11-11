@@ -42,7 +42,7 @@ import { USAGE_CSS } from './usage-page.js'
 import { SCHEDULE_CSS } from './schedules.js'
 import { STORAGE, migrateStorage } from './storage.js'
 import { noteLeft, setUnread, sharedMap, toggleReaction } from './shared-map.js'
-import { freePriority, groupsFor, readMode, surfaceGroups, writeMode } from './surface.js'
+import { freePriority, groupsFor, readMode, readReturnSession, surfaceGroups, writeMode, writeReturnSession } from './surface.js'
 import { installLocale, language, t } from './i18n.js'
 import { noteClientError, quietly } from './diagnostics.js'
 import { steerQueued } from './enter-steer.js'
@@ -87,6 +87,8 @@ export function apply(ctx) {
   // style so the shell's own interface returns. `plain` stays false until a Bot-mode
   // view hosts a plain session, which drops only the conversation replacements.
   const surface = createSource({ mode: readMode(), plain: false })
+  let surfaceRevision = 0
+  let returnSession = readReturnSession()
   // Whether DS Bot holds the settings seat; Overlays draws the Settings dialog while it does not.
   const settingsShellHeld = createSource(false)
   let settingsShell = null
@@ -463,6 +465,7 @@ export function apply(ctx) {
   // Bot mode's view must hold a team conversation; an outside Session wears the
   // Bot skin without one. Runs whenever the surface is (or stays) Bot mode —
   // including a cold start, where no setSurface call ever fires.
+  let stopBotHome = () => {}
   const homeToMainBot = () => {
     const snapshot = roster.getSnapshot()
     if (!snapshot.ready || !snapshot.mainBotId || surface.getSnapshot().mode !== 'bot') return
@@ -472,15 +475,21 @@ export function apply(ctx) {
     }
   }
   const ensureBotHome = () => {
+    stopBotHome()
     if (roster.getSnapshot().ready) homeToMainBot()
     else {
+      const revision = surfaceRevision
+      let active = true
+      const stop = () => { active = false; off(); if (stopBotHome === stop) stopBotHome = () => {} }
       const off = roster.subscribe(() => {
-        if (!roster.getSnapshot().ready) return
-        off()
-        homeToMainBot()
+        if (!active || !roster.getSnapshot().ready) return
+        stop()
+        if (revision === surfaceRevision) homeToMainBot()
       })
+      stopBotHome = stop
     }
   }
+  ctx.effect(() => () => { surfaceRevision += 1; stopBotHome(); show.cancel() }, 'ds-bot: session navigation')
   const actions = {
     ...teamActions({ call, after, partFor, roster, ui, live, cards, heldCards, turnClock, panelFolded }),
     learningAnswer: (id, approve) => after(call('learning-answer', { id, approve })),
@@ -560,11 +569,15 @@ export function apply(ctx) {
     // `last` is the Bot conversation the view held before it cleared: when that part
     // was archived for a fresh one, the view goes on in the fresh one.
     landOn: async (id, last) => {
+      const revision = surfaceRevision
+      const valid = () => surface.getSnapshot().mode === 'bot' && surfaceRevision === revision
+      if (!valid()) return
       if (last) await pull().catch(() => {})
+      if (!valid()) return
       const bot = last ? roster.getSnapshot().byId[last.botId] : undefined
       setPlain(false)
       const target = bot && currentPart(bot) !== last.sessionId ? currentPart(bot) : partFor(id)
-      show(target)
+      show(target, { valid })
     },
     selectPanel: (id) => { ctx.layout.selectPanel(id) },
     toggleSidebar: () => { ctx.layout.toggleSidebar() },
@@ -598,7 +611,13 @@ export function apply(ctx) {
         if (mode === 'bot') ensureBotHome()
         return
       }
-      if (mode === 'agent') {
+      surfaceRevision += 1
+      stopBotHome()
+      show.cancel()
+      if (mode === 'bot') {
+        returnSession = mainView() ?? null
+        writeReturnSession(returnSession)
+      } else {
         ui.set(state => ({ ...state, details: null, view: 'details', settings: null, palette: null, newChat: null, menu: null, voice: null, exchange: null, memory: null, toast: null }))
       }
       writeMode(mode)
@@ -606,7 +625,11 @@ export function apply(ctx) {
       // The Bot view kept the shell's sidebar collapsed under its own column; the
       // shell's own view gets it back (below DSH_NARROW the shell decides itself).
       if (mode === 'agent' && window.innerWidth >= DSH_NARROW && frame.getSnapshot().collapsed) ctx.layout.toggleSidebar()
-      if (mode !== 'bot') return
+      if (mode === 'agent') {
+        const revision = surfaceRevision
+        if (returnSession) show(returnSession, { valid: () => surface.getSnapshot().mode === 'agent' && surfaceRevision === revision, timeout: 10_000 })
+        return
+      }
       ensureBotHome()
     },
     markUnread: id => writeUnread(id, true),
