@@ -166,7 +166,8 @@ test('the global toggle switches both ways without depending on sidebar width or
     assert.equal(tree.props.role, 'switch')
     assert.equal(tree.props['aria-label'], 'DS Bot mode')
     assert.equal(tree.props['aria-checked'], mode === 'bot')
-    assert.equal(tree.props.title, next === 'bot' ? 'Switch to Bot mode' : 'Switch to native mode')
+    assert.equal(tree.props.title, `${next === 'bot' ? 'Switch to Bot mode' : 'Switch to native mode'}\nDrag to move, or use Shift + arrow keys.`)
+    assert.equal(tree.props['aria-description'], 'Drag to move, or use Shift + arrow keys.')
     tree.props.onClick()
     assert.equal(calls.at(-1), next)
   }

@@ -346,6 +346,7 @@ const ZH = {
   'Provider message': '原文',
   'DS Bot': 'DS Bot',
   'DS Bot mode': 'DS Bot 模式',
+  'Drag to move, or use Shift + arrow keys.': '拖动可移动，也可按 Shift + 方向键移动。',
   'Switch to native mode': '切换到原生模式',
   'Switch to Bot mode': '切换到 Bot 模式',
 
