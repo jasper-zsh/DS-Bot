@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { readFileSync } from 'node:fs'
+import { runInNewContext } from 'node:vm'
+import { createSource } from '../src/client/sources.js'
 import { freePriority, groupsFor, readMode, surfaceGroups, writeMode } from '../src/client/surface.js'
 import { STORAGE } from '../src/client/storage.js'
 
@@ -171,4 +174,25 @@ test('a shadow goes below every entry of its cell, so a same-priority plugin doe
 
 test('readMode falls back to bot when storage throws', () => {
   assert.equal(readMode({ getItem: () => { throw new Error('denied') } }), 'bot')
+})
+
+test('a deferred Bot landing does not navigate after switching back to Agent mode', () => {
+  const source = readFileSync(new URL('../src/client/index.js', import.meta.url), 'utf8')
+  const landing = source.slice(source.indexOf('  const homeToMainBot ='), source.indexOf('  const actions ='))
+  assert.ok(landing.includes('const ensureBotHome ='))
+  for (const mode of ['agent', 'bot']) {
+    const roster = createSource({ ready: false })
+    const surface = createSource({ mode: 'bot' })
+    const opened = []
+    const ensure = runInNewContext(`${landing}\nensureBotHome`, {
+      roster, surface, mainView: () => 'native-session',
+      actions: { openSession: id => opened.push(id) },
+    })
+    ensure()
+    surface.set({ mode })
+    roster.set({ ready: true, mainBotId: 'main', byId: {}, roomsById: {} })
+    assert.deepEqual(opened, mode === 'bot' ? ['main'] : [])
+    roster.set({ ...roster.getSnapshot() })
+    assert.equal(opened.length, mode === 'bot' ? 1 : 0, 'the readiness subscription was released')
+  }
 })

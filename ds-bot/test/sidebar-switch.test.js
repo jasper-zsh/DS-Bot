@@ -466,12 +466,13 @@ test('the rail spaces its icons on the open column\'s rhythm', () => {
   assert.match(bodyOf('.bt-rail'), /(^|;)gap:6px/)
 })
 
-// #452: the Connect plugins button left the footer; what DS Bot puts there is
-// the account menu and the way back from Agent mode.
-test('the Bot footer holds the account and the return button only', () => {
+test('the mode toggle is global and the footer holds only the account', () => {
   const source = readFileSync(new URL('../src/client/index.js', import.meta.url), 'utf8')
   const ids = [...source.matchAll(/shadow\('sidebar\.footer\.action',\s*\{[^}]*?id:\s*['"]([^'"]+)['"]/g)].map(match => match[1])
-  assert.deepEqual(ids.sort(), ['bot-account', 'bot-return'])
+  assert.deepEqual(ids, ['bot-account'])
+  const global = source.slice(source.indexOf('// The mode toggle'), source.indexOf('// The main view decides'))
+  assert.match(global, /installCompiledStyles\(SURFACE_TOGGLE_CSS/)
+  assert.match(global, /shadow\('shell\.overlay', \{ id: 'bot-surface-toggle', order: 70, inject: face \}, SurfaceToggle\)/)
 })
 
 // The edge drag writes the column and the chat's margins straight into the page, so these

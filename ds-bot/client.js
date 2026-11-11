@@ -123,6 +123,9 @@ function convertHostErrors(pairs) {
 
 // src/client/locales/ja.js
 var JA = {
+  "DS Bot mode": "DS Bot モード",
+  "Switch to native mode": "ネイティブモードに切り替える",
+  "Switch to Bot mode": "Bot モードに切り替える",
   "Android beta": "Android ベータ版",
   "Cannot reach the Server. Trying again…": "サーバーに接続できません。再試行しています…",
   "No phones yet": "スマートフォンはまだありません",
@@ -2392,6 +2395,9 @@ var DSH_JA = {
 
 // src/client/locales/ko.js
 var KO = {
+  "DS Bot mode": "DS Bot 모드",
+  "Switch to native mode": "기본 모드로 전환",
+  "Switch to Bot mode": "Bot 모드로 전환",
   "Android beta": "Android 베타",
   "Cannot reach the Server. Trying again…": "서버에 연결할 수 없습니다. 다시 시도하는 중…",
   "No phones yet": "아직 휴대폰이 없습니다",
@@ -4706,6 +4712,9 @@ var DSH_KO = {
 
 // src/client/locales/es.js
 var ES = {
+  "DS Bot mode": "Modo DS Bot",
+  "Switch to native mode": "Cambiar al modo nativo",
+  "Switch to Bot mode": "Cambiar al modo Bot",
   "Android beta": "Android beta",
   "Cannot reach the Server. Trying again…": "No se puede conectar con el servidor. Reintentando…",
   "No phones yet": "Aún no hay teléfonos",
@@ -7020,6 +7029,9 @@ var DSH_ES = {
 
 // src/client/locales/fr.js
 var FR = {
+  "DS Bot mode": "Mode DS Bot",
+  "Switch to native mode": "Passer au mode natif",
+  "Switch to Bot mode": "Passer au mode Bot",
   "Android beta": "Android bêta",
   "Cannot reach the Server. Trying again…": "Impossible de joindre le serveur. Nouvel essai…",
   "No phones yet": "Aucun téléphone pour l’instant",
@@ -9289,6 +9301,9 @@ var DSH_FR = {
 
 // src/client/locales/de.js
 var DE = {
+  "DS Bot mode": "DS Bot-Modus",
+  "Switch to native mode": "Zum nativen Modus wechseln",
+  "Switch to Bot mode": "Zum Bot-Modus wechseln",
   "Android beta": "Android-Beta",
   "Cannot reach the Server. Trying again…": "Server nicht erreichbar. Neuer Versuch…",
   "No phones yet": "Noch keine Telefone",
@@ -11937,6 +11952,9 @@ var ZH = {
   "Request ID": "请求 ID",
   "Provider message": "原文",
   "DS Bot": "DS Bot",
+  "DS Bot mode": "DS Bot 模式",
+  "Switch to native mode": "切换到原生模式",
+  "Switch to Bot mode": "切换到 Bot 模式",
   // Header
   "Message {name}": "给 {name} 发消息",
   Message: "发消息",
@@ -28365,27 +28383,39 @@ function FooterAccount(props) {
   if (seated) return null;
   return (0, import_react34.createElement)("span", { className: "bt-foot-account" }, (0, import_react34.createElement)(AccountLauncher, { ...props, seat: false }));
 }
-function BotReturn({ wide, useSurface, useRoster, actions }) {
+function SurfaceToggle({ useSurface, useRoster, actions }) {
   const mode = useSurface((value) => value.mode);
   const ready = useRoster((value) => value.ready);
   useReportReady(mode === "agent" && ready);
-  if (mode !== "agent") return null;
-  return (0, import_react34.createElement)(
+  const bot = mode === "bot";
+  return (0, import_react_dom5.createPortal)((0, import_react34.createElement)(
     "button",
-    { type: "button", className: "bt-return", "aria-label": t("DS Bot"), title: t("DS Bot"), onClick: () => actions.setSurface("bot") },
+    {
+      type: "button",
+      className: "bt-surface-toggle",
+      role: "switch",
+      "aria-label": t("DS Bot mode"),
+      "aria-checked": bot,
+      title: bot ? t("Switch to native mode") : t("Switch to Bot mode"),
+      onClick: () => actions.setSurface(bot ? "agent" : "bot")
+    },
     (0, import_react34.createElement)(BotMark, { look: MAIN_LOOK, size: 20 }),
-    wide ? (0, import_react34.createElement)("span", { className: "bt-return-name" }, t("DS Bot")) : null
-  );
+    (0, import_react34.createElement)("span", null, t("DS Bot")),
+    (0, import_react34.createElement)("span", { className: "bt-surface-track", "aria-hidden": true }, (0, import_react34.createElement)("span", { className: "bt-surface-thumb" }))
+  ), document.body);
 }
-var RETURN_CSS = `
-.bt-return{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:36px;padding:0 14px;border:0;border-radius:999px;background:none;color:inherit;font:inherit;font-size:14px;line-height:20px;cursor:pointer;transition:background-color .12s ease}
-.bt-return:hover{background:rgba(127,127,127,.14)}
-.bt-return:active{transform:scale(.96)}
-.bt-return .bt-mark{display:inline-flex;flex:none;line-height:0}
-.bt-return .bt-mark svg{width:100%;height:100%;overflow:visible}
-/* Shell styles carry --bt-ink-deepseek and Agent mode withdraws them; pin it here. */
-.bt-return .bt-mark{--bt-ink-deepseek:#4D6BFE}
-.bt-return-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+var SURFACE_TOGGLE_CSS = `
+.bt-surface-toggle{--bt-main:var(--dsw-alias-bg-base);--bt-ink:var(--dsw-alias-label-primary);--bt-line-2:color-mix(in srgb,var(--bt-ink) 15%,transparent);--bt-hover:color-mix(in srgb,var(--bt-ink) 9%,var(--bt-main));position:fixed;z-index:45;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 12px;border:.5px solid var(--bt-line-2);border-radius:999px;background:var(--bt-main);color:var(--bt-ink);box-shadow:0 2px 8px -1px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);font-family:var(--dsw-font-family,inherit);font-size:13px;line-height:18px;font-weight:500;white-space:nowrap;cursor:pointer;pointer-events:auto;-webkit-app-region:no-drag;transition:background-color .12s ease,scale ${SPRING_TAP.duration}ms ${SPRING_TAP.easing}}
+.bt-surface-toggle:hover{background:var(--bt-hover)}
+.bt-surface-toggle:active{scale:.96}
+.bt-surface-toggle:focus-visible{outline:2px solid var(--bt-accent,var(--bt-ink));outline-offset:2px}
+.bt-surface-toggle .bt-mark{--bt-ink-deepseek:currentColor;display:inline-flex;flex:none;line-height:0}
+.bt-surface-toggle .bt-mark svg{width:100%;height:100%;overflow:visible}
+.bt-surface-track{display:inline-flex;align-items:center;flex:none;width:36px;height:20px;padding:2px;box-sizing:border-box;border-radius:999px;background:var(--bt-line-2);transition:background-color .12s ease}
+.bt-surface-thumb{width:16px;height:16px;border-radius:50%;corner-shape:round;background:var(--bt-main);transition:translate ${SPRING_SHAPE.duration}ms ${SPRING_SHAPE.easing}}
+.bt-surface-toggle[aria-checked=true] .bt-surface-track{background:var(--bt-accent,var(--bt-ink))}
+.bt-surface-toggle[aria-checked=true] .bt-surface-thumb{translate:16px 0}
+@media (prefers-reduced-motion:reduce){.bt-surface-toggle,.bt-surface-thumb{transition:none}}
 `;
 function BrandMark({ size = 24 }) {
   return (0, import_react34.createElement)("span", { className: "bt-brand-whale" }, (0, import_react34.createElement)(BotMark, { look: MAIN_LOOK, size }));
@@ -41158,7 +41188,7 @@ function apply(ctx) {
   const yieldBrowser = (state) => state.panelYield === true || panelFolded("browser");
   const homeToMainBot = () => {
     const snapshot = roster.getSnapshot();
-    if (!snapshot.ready || !snapshot.mainBotId) return;
+    if (!snapshot.ready || !snapshot.mainBotId || surface.getSnapshot().mode !== "bot") return;
     const main = mainView();
     if (main !== void 0 && snapshot.byId[main] === void 0 && snapshot.roomsById[main] === void 0) {
       actions.openSession(snapshot.mainBotId);
@@ -41818,9 +41848,9 @@ function apply(ctx) {
     // its cell; it lists only the sends the user authored (#663).
     () => shadow("conversation.input.dock", { id: "queue", order: 20, priority: BOT_PRIORITY, inject: queueFace }, QueueDock)
   ];
-  ctx.effect(() => installCompiledStyles(RETURN_CSS, "return"), "ds-bot: return styles");
+  ctx.effect(() => installCompiledStyles(SURFACE_TOGGLE_CSS, "surface-toggle"), "ds-bot: surface toggle styles");
   ctx.effect(() => installCompiledStyles(COMPUTER_CSS, "computer"), "ds-bot: computer styles");
-  shadow("sidebar.footer.action", { id: "bot-return", order: -300, inject: face }, BotReturn);
+  shadow("shell.overlay", { id: "bot-surface-toggle", order: 70, inject: face }, SurfaceToggle);
   ctx.effect(() => {
     let previous;
     const sync = () => {

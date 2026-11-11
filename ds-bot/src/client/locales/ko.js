@@ -1,6 +1,9 @@
 // Korean (ko) localization for DS Bot client and DSH settings namespaces.
 
 export const KO = {
+  "DS Bot mode": "DS Bot 모드",
+  "Switch to native mode": "기본 모드로 전환",
+  "Switch to Bot mode": "Bot 모드로 전환",
   "Android beta": "Android 베타",
   "Cannot reach the Server. Trying again…": "서버에 연결할 수 없습니다. 다시 시도하는 중…",
   "No phones yet": "아직 휴대폰이 없습니다",

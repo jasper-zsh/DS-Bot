@@ -12,7 +12,7 @@ import { build } from 'esbuild'
 const PLUGIN = dirname(dirname(fileURLToPath(import.meta.url)))
 const { outputFiles } = await build({
   stdin: {
-    contents: "export { BotReturn, TeamSidebar } from './src/client/sidebar.js'\nexport { clientErrors } from './src/client/diagnostics.js'",
+    contents: "export { SurfaceToggle, TeamSidebar } from './src/client/sidebar.js'\nexport { clientErrors } from './src/client/diagnostics.js'",
     resolveDir: PLUGIN,
   },
   bundle: true, format: 'cjs', platform: 'browser', write: false, logLevel: 'silent',
@@ -54,7 +54,7 @@ function page(dsBotApp, documentStub = {}, globals = {}) {
   const module = { exports: {} }
   runInNewContext(outputFiles[0].text, {
     module, exports: module.exports,
-    require: name => (name === 'react' ? react : {}),
+    require: name => (name === 'react' ? react : name === 'react-dom' ? { createPortal: tree => tree } : {}),
     window: { innerWidth: 1280, addEventListener() {}, removeEventListener() {} },
     document: { addEventListener() {}, removeEventListener() {}, querySelector: () => null, documentElement: { setAttribute() {}, removeAttribute() {} }, ...documentStub },
     setTimeout: () => 0, clearTimeout() {},
@@ -73,7 +73,7 @@ const sidebarProps = roster => ({
   useRoster: pick => pick(roster), useUi: pick => pick({ unread: {} }), useRegistry: pick => pick({}),
   useSessions: pick => pick({ ids: [], byId: {} }), useUpdate: () => ({}),
 })
-const returnProps = (mode, roster) => ({ wide: true, actions: {}, useSurface: pick => pick({ mode }), useRoster: pick => pick(roster) })
+const toggleProps = (mode, roster, actions = {}) => ({ actions, useSurface: pick => pick({ mode }), useRoster: pick => pick(roster) })
 
 // The team column's content sits inside the frame's column, under a Fragment.
 const drawsSide = node => node !== null && typeof node === 'object'
@@ -139,18 +139,50 @@ test('a Main Bot in another look or a photo reports no place', async () => {
   }
 })
 
-test('in Agent mode the return button reports what the team sidebar would', async () => {
+test('in Agent mode the global toggle reports what the team sidebar would', async () => {
   const { calls, app } = readyCalls()
-  const { BotReturn, TeamSidebar } = page(app)
-  const button = mount(BotReturn)
-  assert.equal(button(returnProps('bot', TEAM)), null)
-  button(returnProps('agent', BEFORE_STATE))
+  const { SurfaceToggle, TeamSidebar } = page(app)
+  const button = mount(SurfaceToggle)
+  assert.equal(button(toggleProps('bot', TEAM)).type, 'button')
+  button(toggleProps('agent', BEFORE_STATE))
   await setImmediate()
   assert.deepEqual(calls, [])
-  button(returnProps('agent', TEAM))
+  button(toggleProps('agent', TEAM))
   mount(TeamSidebar)(sidebarProps(TEAM))
   await setImmediate()
   assert.deepEqual(calls, [[]])
+})
+
+test('the global toggle switches both ways without depending on sidebar width or plain sessions', () => {
+  const { SurfaceToggle } = page()
+  const button = mount(SurfaceToggle)
+  const calls = []
+  const actions = { setSurface: mode => calls.push(mode) }
+  for (const [mode, next] of [['agent', 'bot'], ['bot', 'agent'], ['agent', 'bot']]) {
+    const tree = button(toggleProps(mode, TEAM, actions))
+    assert.equal(tree.type, 'button')
+    assert.equal(tree.props.type, 'button')
+    assert.equal(tree.props.className, 'bt-surface-toggle')
+    assert.equal(tree.props.role, 'switch')
+    assert.equal(tree.props['aria-label'], 'DS Bot mode')
+    assert.equal(tree.props['aria-checked'], mode === 'bot')
+    assert.equal(tree.props.title, next === 'bot' ? 'Switch to Bot mode' : 'Switch to native mode')
+    tree.props.onClick()
+    assert.equal(calls.at(-1), next)
+  }
+  assert.deepEqual(calls, ['bot', 'agent', 'bot'])
+})
+
+test('in Bot mode the global toggle leaves the avatar handoff to the team sidebar', async () => {
+  const { calls, app } = readyCalls()
+  const { SurfaceToggle, TeamSidebar } = avatarPage(app)
+  mount(SurfaceToggle)(toggleProps('bot', whaleTeam))
+  await setImmediate()
+  assert.deepEqual(calls, [])
+  mount(TeamSidebar)(sidebarProps(whaleTeam))
+  await setImmediate()
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0][0].width, 60)
 })
 
 test('without the app bridge or its ready() the sidebar draws as before', async () => {
