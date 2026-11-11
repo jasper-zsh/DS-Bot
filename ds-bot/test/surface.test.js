@@ -178,14 +178,14 @@ test('readMode falls back to bot when storage throws', () => {
 
 test('a deferred Bot landing does not navigate after switching back to Agent mode', () => {
   const source = readFileSync(new URL('../src/client/index.js', import.meta.url), 'utf8')
-  const landing = source.slice(source.indexOf('  const homeToMainBot ='), source.indexOf('  const actions ='))
+  const landing = source.slice(source.indexOf('  let stopBotHome ='), source.indexOf('  const actions ='))
   assert.ok(landing.includes('const ensureBotHome ='))
   for (const mode of ['agent', 'bot']) {
     const roster = createSource({ ready: false })
     const surface = createSource({ mode: 'bot' })
     const opened = []
     const ensure = runInNewContext(`${landing}\nensureBotHome`, {
-      roster, surface, mainView: () => 'native-session',
+      roster, surface, surfaceRevision: 0, ctx: { effect() {} }, mainView: () => 'native-session',
       actions: { openSession: id => opened.push(id) },
     })
     ensure()

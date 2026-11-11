@@ -4,24 +4,34 @@
 // elsewhere — drops the wait.
 export function listedOpener({ list, open, refresh, current }) {
   let drop = () => {}
-  return (target) => {
-    drop()
-    drop = () => {}
-    const listed = () => list.getSnapshot().byId?.[target] !== undefined
+  const cancel = () => { const stop = drop; drop = () => {}; stop() }
+  const show = (target, { valid = () => true, timeout = 0 } = {}) => {
+    cancel()
+    if (!valid()) return
+    const listed = () => Object.hasOwn(list.getSnapshot().byId ?? {}, target)
     if (listed()) { open(target); return }
     const from = current?.()
-    const off = list.subscribe(() => {
-      if (current?.() !== from) {
-        off()
-        drop = () => {}
-        return
-      }
-      if (!listed()) return
+    let active = true
+    let timer = 0
+    let off = () => {}
+    const stop = () => {
+      active = false
       off()
-      drop = () => {}
-      open(target)
+      clearTimeout(timer)
+      if (drop === stop) drop = () => {}
+    }
+    off = list.subscribe(() => {
+      // A source can already be dispatching a copied listener list when cancelled.
+      if (!active) return
+      if (!valid() || current?.() !== from) { stop(); return }
+      if (!listed()) return
+      stop()
+      if (valid()) open(target)
     })
-    drop = off
+    drop = stop
+    if (timeout > 0) timer = setTimeout(stop, timeout)
     refresh?.()
   }
+  show.cancel = cancel
+  return show
 }

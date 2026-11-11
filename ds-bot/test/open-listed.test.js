@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { setTimeout as pause } from 'node:timers/promises'
 import { listedOpener } from '../src/client/open-listed.js'
 
 const store = (ids = []) => {
@@ -10,6 +11,7 @@ const store = (ids = []) => {
   for (const id of ids) put(id)
   return {
     getSnapshot: () => snapshot,
+    listeners: () => [...listeners],
     subscribe: (fn) => { listeners.add(fn); return () => { listeners.delete(fn) } },
     set: (id) => { put(id); notify() },
     setMain: (id) => { for (const row of Object.values(snapshot.byId)) delete row.retainedBy; put(id, true); notify() },
@@ -72,4 +74,71 @@ test('a navigation elsewhere drops the wait', () => {
   list.setMain('y')
   list.set('a')
   assert.deepEqual(opened, [])
+})
+
+test('cancellation invalidates callbacks already copied by a list dispatch', () => {
+  const list = store()
+  const { show, opened } = rig(list)
+  show('a')
+  const [stale] = list.listeners()
+  show.cancel()
+  assert.equal(list.listeners().length, 0)
+  list.set('a')
+  stale()
+  assert.deepEqual(opened, [])
+})
+
+test('request guards apply before both immediate and delayed navigation', () => {
+  const list = store(['a'])
+  const { show, opened, refreshes } = rig(list)
+  let allowed = false
+  show('a', { valid: () => allowed })
+  assert.deepEqual(opened, [])
+  assert.equal(refreshes(), 0)
+  allowed = true
+  show('b', { valid: () => allowed })
+  allowed = false
+  list.set('b')
+  assert.deepEqual(opened, [])
+  assert.equal(list.listeners().length, 0)
+})
+
+test('a superseded callback cannot open its old target after another request', () => {
+  const list = store()
+  const { show, opened } = rig(list)
+  show('a')
+  const [stale] = list.listeners()
+  show('b')
+  list.set('a')
+  stale()
+  list.set('b')
+  assert.deepEqual(opened, ['b'])
+})
+
+test('a timed-out restoration cannot navigate when a missing session appears later', async () => {
+  const list = store()
+  const { show, opened } = rig(list)
+  show('a', { timeout: 10 })
+  await pause(30)
+  assert.equal(list.listeners().length, 0)
+  list.set('a')
+  assert.deepEqual(opened, [])
+})
+
+test('an old timeout cannot cancel a newer request', async () => {
+  const list = store()
+  const { show, opened } = rig(list)
+  show('a', { timeout: 10 })
+  show('b')
+  await pause(30)
+  list.set('b')
+  assert.deepEqual(opened, ['b'])
+})
+
+test('prototype names are not mistaken for listed session ids', () => {
+  const list = store()
+  const { show, opened } = rig(list)
+  show('toString')
+  assert.deepEqual(opened, [])
+  show.cancel()
 })
