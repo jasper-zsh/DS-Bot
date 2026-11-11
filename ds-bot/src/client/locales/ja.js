@@ -2,6 +2,7 @@
 
 export const JA = {
   "DS Bot mode": "DS Bot モード",
+  "Drag to move, or use Shift + arrow keys.": "ドラッグ、または Shift + 方向キーで移動できます。",
   "Switch to native mode": "ネイティブモードに切り替える",
   "Switch to Bot mode": "Bot モードに切り替える",
   "Android beta": "Android ベータ版",

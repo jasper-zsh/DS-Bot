@@ -124,6 +124,7 @@ function convertHostErrors(pairs) {
 // src/client/locales/ja.js
 var JA = {
   "DS Bot mode": "DS Bot モード",
+  "Drag to move, or use Shift + arrow keys.": "ドラッグ、または Shift + 方向キーで移動できます。",
   "Switch to native mode": "ネイティブモードに切り替える",
   "Switch to Bot mode": "Bot モードに切り替える",
   "Android beta": "Android ベータ版",
@@ -2396,6 +2397,7 @@ var DSH_JA = {
 // src/client/locales/ko.js
 var KO = {
   "DS Bot mode": "DS Bot 모드",
+  "Drag to move, or use Shift + arrow keys.": "드래그하거나 Shift + 방향키로 이동하세요.",
   "Switch to native mode": "기본 모드로 전환",
   "Switch to Bot mode": "Bot 모드로 전환",
   "Android beta": "Android 베타",
@@ -4713,6 +4715,7 @@ var DSH_KO = {
 // src/client/locales/es.js
 var ES = {
   "DS Bot mode": "Modo DS Bot",
+  "Drag to move, or use Shift + arrow keys.": "Arrastra para mover, o usa Mayús + flechas.",
   "Switch to native mode": "Cambiar al modo nativo",
   "Switch to Bot mode": "Cambiar al modo Bot",
   "Android beta": "Android beta",
@@ -7030,6 +7033,7 @@ var DSH_ES = {
 // src/client/locales/fr.js
 var FR = {
   "DS Bot mode": "Mode DS Bot",
+  "Drag to move, or use Shift + arrow keys.": "Faites glisser pour déplacer, ou utilisez Maj + les flèches.",
   "Switch to native mode": "Passer au mode natif",
   "Switch to Bot mode": "Passer au mode Bot",
   "Android beta": "Android bêta",
@@ -9302,6 +9306,7 @@ var DSH_FR = {
 // src/client/locales/de.js
 var DE = {
   "DS Bot mode": "DS Bot-Modus",
+  "Drag to move, or use Shift + arrow keys.": "Zum Verschieben ziehen oder Umschalt + Pfeiltasten verwenden.",
   "Switch to native mode": "Zum nativen Modus wechseln",
   "Switch to Bot mode": "Zum Bot-Modus wechseln",
   "Android beta": "Android-Beta",
@@ -11953,6 +11958,7 @@ var ZH = {
   "Provider message": "原文",
   "DS Bot": "DS Bot",
   "DS Bot mode": "DS Bot 模式",
+  "Drag to move, or use Shift + arrow keys.": "拖动可移动，也可按 Shift + 方向键移动。",
   "Switch to native mode": "切换到原生模式",
   "Switch to Bot mode": "切换到 Bot 模式",
   // Header
@@ -14709,6 +14715,7 @@ var STORAGE = {
   seen: "ds-bot:seen",
   prefs: "ds-bot:prefs",
   surface: "ds-bot:surface",
+  surfacePosition: "ds-bot:surface-position",
   agentSessions: "ds-bot:agent-sessions",
   browserWidth: "ds-bot:browser-width",
   sidebar: "ds-bot:sidebar",
@@ -16308,9 +16315,9 @@ function useGaze(ref, enabled) {
       const node = ref.current;
       if (!node || !point) return;
       const box = node.getBoundingClientRect();
-      const clamp = (value) => Math.max(-1, Math.min(1, value));
-      node.style.setProperty("--bt-gx", clamp((point.x - box.left - box.width / 2) / 160).toFixed(2));
-      node.style.setProperty("--bt-gy", clamp((point.y - box.top - box.height / 2) / 160).toFixed(2));
+      const clamp2 = (value) => Math.max(-1, Math.min(1, value));
+      node.style.setProperty("--bt-gx", clamp2((point.x - box.left - box.width / 2) / 160).toFixed(2));
+      node.style.setProperty("--bt-gy", clamp2((point.y - box.top - box.height / 2) / 160).toFixed(2));
     };
     const onMove = (event) => {
       if (document.body?.dataset.btMotion === "quiet") return;
@@ -19121,9 +19128,9 @@ function chartCsv({ categories, series, unit }, t2 = (key) => key) {
   return [head, ...rows2].map((row) => row.map((cell) => csvCell(String(cell))).join(",")).join("\n");
 }
 function valueAxis(values, zero) {
-  const finite = values.length > 0 ? values : [0];
-  const low = Math.min(...finite);
-  const high = Math.max(...finite);
+  const finite2 = values.length > 0 ? values : [0];
+  const low = Math.min(...finite2);
+  const high = Math.max(...finite2);
   if (zero) return niceTicks(Math.min(0, low), Math.max(0, high));
   const pad2 = (high - low) * 0.1 || Math.abs(high) * 0.1 || 1;
   return niceTicks(low - pad2, high + pad2);
@@ -25273,7 +25280,7 @@ function stampOf(card) {
   const time = Number.isFinite(card.finishedAt) ? card.finishedAt : card.createdAt;
   return Number.isFinite(time) ? time : void 0;
 }
-function BtwCardView({ card, compact: compact2 = false, sessionId, actions, onDeleted }) {
+function BtwCardView({ card, compact: compact3 = false, sessionId, actions, onDeleted }) {
   const [open, setOpen] = (0, import_react30.useState)(card?.status !== "answering");
   const [deleting, setDeleting] = (0, import_react30.useState)(false);
   (0, import_react30.useEffect)(() => {
@@ -25299,7 +25306,7 @@ function BtwCardView({ card, compact: compact2 = false, sessionId, actions, onDe
   return (0, import_react30.createElement)(
     "div",
     {
-      className: compact2 ? "bt-btw bt-btw-compact" : "bt-btw",
+      className: compact3 ? "bt-btw bt-btw-compact" : "bt-btw",
       "data-open": open || void 0,
       "data-status": card.status,
       role: "region",
@@ -25496,10 +25503,10 @@ function UserText({ text, bots, referenceLabels, skillNames, references, actions
   ) : (0, import_react31.createElement)(import_react31.Fragment, { key: index }, ui.projectUserText(part.text, referenceLabels, skillNames, "skill", references)));
 }
 function Attachments({ attachments, renderMessageImages }) {
-  const compact2 = attachments.length > 1;
+  const compact3 = attachments.length > 1;
   return (0, import_react31.createElement)("div", { className: "bt-uattach" }, attachments.map((block, index) => {
     if (block.type === "image") {
-      return renderMessageImages ? (0, import_react31.createElement)(import_react31.Fragment, { key: index }, renderMessageImages({ images: [{ attachment: block.attachment }], align: "end", compact: compact2 })) : null;
+      return renderMessageImages ? (0, import_react31.createElement)(import_react31.Fragment, { key: index }, renderMessageImages({ images: [{ attachment: block.attachment }], align: "end", compact: compact3 })) : null;
     }
     const file = block.attachment;
     const meta = [ui.fileExtension?.(file.name)?.toUpperCase().slice(0, 8), ui.fileSizeText?.(file.bytes)].filter(Boolean).join(" · ");
@@ -27086,6 +27093,384 @@ function installFrameWatch(frame) {
   };
 }
 
+// src/client/floating-layout.js
+var finite = (value, fallback = 0) => Number.isFinite(value) ? value : fallback;
+var clamp = (value, low, high) => Math.min(Math.max(value, low), Math.max(low, high));
+var dimensions = (size) => ({ width: Math.max(0, finite(size?.width)), height: Math.max(0, finite(size?.height)) });
+function clampPoint(point, size, bounds) {
+  const { width, height } = dimensions(size);
+  const left = finite(bounds?.left);
+  const top = finite(bounds?.top);
+  return {
+    x: clamp(finite(point?.x, left), left, finite(bounds?.right, left) - width),
+    y: clamp(finite(point?.y, top), top, finite(bounds?.bottom, top) - height)
+  };
+}
+var rectangle = (value) => value && ["left", "top", "right", "bottom"].every((key) => Number.isFinite(value[key])) && value.right > value.left && value.bottom > value.top;
+var overlap = (point, size, obstacle, gap) => Math.max(0, Math.min(point.x + size.width, obstacle.right + gap) - Math.max(point.x, obstacle.left - gap)) * Math.max(0, Math.min(point.y + size.height, obstacle.bottom + gap) - Math.max(point.y, obstacle.top - gap));
+var distance = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
+function placeFloating(point, size, bounds, obstacles = [], gap = 8) {
+  size = dimensions(size);
+  gap = Math.max(0, finite(gap));
+  const preferred = clampPoint(point, size, bounds);
+  if (size.width === 0 || size.height === 0) return preferred;
+  const blocked = [...new Map(obstacles.filter(rectangle).map((rect) => [
+    `${rect.left},${rect.top},${rect.right},${rect.bottom}`,
+    rect
+  ])).values()].sort((a, b) => a.left - b.left || a.top - b.top || a.right - b.right || a.bottom - b.bottom);
+  const score = (candidate, ceiling = Infinity) => {
+    let total = 0;
+    for (const obstacle of blocked) {
+      total += overlap(candidate, size, obstacle, gap);
+      if (total > ceiling) break;
+    }
+    return total;
+  };
+  const target = { x: finite(point?.x, preferred.x), y: finite(point?.y, preferred.y) };
+  let best = preferred;
+  let bestOverlap = score(best);
+  if (bestOverlap === 0) return best;
+  let bestDistance = distance(best, target);
+  const low = clampPoint({ x: -Number.MAX_VALUE, y: -Number.MAX_VALUE }, size, bounds);
+  const high = clampPoint({ x: Number.MAX_VALUE, y: Number.MAX_VALUE }, size, bounds);
+  const xs = [preferred.x, low.x, high.x];
+  const ys = [preferred.y, low.y, high.y];
+  for (const rect of blocked) {
+    xs.push(rect.left - size.width - gap, rect.right + gap);
+    ys.push(rect.top - size.height - gap, rect.bottom + gap);
+  }
+  const unique = (values, low2, high2) => [...new Set(values.map((value) => clamp(value, low2, high2)))].sort((a, b) => a - b);
+  for (const x of unique(xs, low.x, high.x)) {
+    for (const y of unique(ys, low.y, high.y)) {
+      const candidate = { x, y };
+      const area = score(candidate, bestOverlap);
+      const away = distance(candidate, target);
+      if (area < bestOverlap || area === bestOverlap && (away < bestDistance || away === bestDistance && (y < best.y || y === best.y && x < best.x))) {
+        best = candidate;
+        bestOverlap = area;
+        bestDistance = away;
+      }
+    }
+  }
+  return best;
+}
+var CONTROLS = 'button,[role="button"],[role="switch"],a[href],input[type="button"],input[type="submit"],input[type="reset"],input[type="image"]';
+var CANDIDATES = `${CONTROLS},[tabindex],[style*="position"],[class*="floating"],[class*="float"],[class*="Floating"],[class*="Float"],[class*="fab"],[class*="launcher"],[class*="Launcher"]`;
+var EXCLUDED = 'dialog,[role="dialog"],[role="alertdialog"],[aria-modal="true"],[role="menu"],[role="menubar"],[popover]';
+var MAX_CONTROLS = 500;
+var MAX_OBSTACLES = 100;
+var MAX_ROOTS = 100;
+var parentOf = (element) => element.parentElement ?? element.getRootNode?.().host ?? null;
+var compact = (rect, width = 320, height = 160) => rect.right - rect.left <= width && rect.bottom - rect.top <= height;
+var intersects = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+var covers = (rect, viewport) => rect.left <= viewport.left + 1 && rect.top <= viewport.top + 1 && rect.right >= viewport.right - 1 && rect.bottom >= viewport.bottom - 1;
+function floatingObstacles(root, owner) {
+  root ??= globalThis.document;
+  const document2 = root?.nodeType === 9 ? root : root?.ownerDocument;
+  const view = document2?.defaultView;
+  if (!view || !root?.querySelectorAll) return [];
+  const visual = view.visualViewport;
+  const left = finite(visual?.offsetLeft);
+  const top = finite(visual?.offsetTop);
+  const viewport = {
+    left,
+    top,
+    right: left + finite(visual?.width, view.innerWidth),
+    bottom: top + finite(visual?.height, view.innerHeight)
+  };
+  const styles = /* @__PURE__ */ new WeakMap();
+  const rects = /* @__PURE__ */ new WeakMap();
+  const styleOf = (element) => {
+    if (!styles.has(element)) styles.set(element, view.getComputedStyle(element));
+    return styles.get(element);
+  };
+  const rectOf = (element) => {
+    if (!rects.has(element)) {
+      const rect = element.getBoundingClientRect();
+      rects.set(element, { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom });
+    }
+    return rects.get(element);
+  };
+  const qualifies = (control) => {
+    const style = styleOf(control);
+    if (control.disabled || control.getAttribute("aria-disabled") === "true" || style.pointerEvents === "none") return false;
+    if (!control.matches(CONTROLS) && (style.cursor !== "pointer" || control.matches('[role="toolbar"]'))) return false;
+    const rect = rectOf(control);
+    if (!rectangle(rect) || !compact(rect, 240, 120) || !intersects(rect, viewport)) return false;
+    let fixed = null;
+    let absolute = false;
+    let large = false;
+    let depth = 0;
+    for (let node = control; node; node = parentOf(node)) {
+      if (depth++ >= 64) return false;
+      if (node === owner || node.matches(EXCLUDED) || node.hidden || node.inert || node.getAttribute("aria-hidden") === "true") return false;
+      const style2 = styleOf(node);
+      if (style2.display === "none" || style2.visibility === "hidden" || style2.visibility === "collapse" || style2.opacity !== "" && Number(style2.opacity) === 0 || style2.contentVisibility === "hidden") return false;
+      if (fixed) continue;
+      if (style2.position === "fixed") {
+        const box = rectOf(node);
+        fixed = node === control || !large && (compact(box) || absolute && style2.pointerEvents === "none" && covers(box, viewport));
+        if (!fixed) fixed = "rejected";
+      } else {
+        if (style2.position === "absolute" && compact(rectOf(node))) absolute = true;
+        if (node !== control && !compact(rectOf(node)) && style2.pointerEvents !== "none") large = true;
+      }
+    }
+    return fixed === true;
+  };
+  const roots = [root];
+  const queued = new Set(roots);
+  const seen = /* @__PURE__ */ new Set();
+  const occupied = /* @__PURE__ */ new Set();
+  const result = [];
+  let inspected = 0;
+  const addShadow = (element) => {
+    const shadow = element?.shadowRoot;
+    if (shadow && !queued.has(shadow) && roots.length < MAX_ROOTS) {
+      queued.add(shadow);
+      roots.push(shadow);
+    }
+  };
+  for (let index = 0; index < roots.length && inspected < MAX_CONTROLS && result.length < MAX_OBSTACLES; index += 1) {
+    const scope = roots[index];
+    addShadow(scope);
+    for (const child of [...scope.children ?? []].slice(-MAX_ROOTS)) addShadow(child);
+    if (scope.nodeType === 9) for (const child of [...scope.body?.children ?? []].slice(-MAX_ROOTS)) addShadow(child);
+    const controls = [...scope.querySelectorAll(CANDIDATES)];
+    if (scope.matches?.(CANDIDATES)) controls.push(scope);
+    for (let i = controls.length - 1; i >= 0 && inspected < MAX_CONTROLS && result.length < MAX_OBSTACLES; i -= 1) {
+      const control = controls[i];
+      if (seen.has(control)) continue;
+      seen.add(control);
+      inspected += 1;
+      addShadow(control);
+      if (qualifies(control)) {
+        const rect = rectOf(control);
+        const key = `${rect.left},${rect.top},${rect.right},${rect.bottom}`;
+        if (!occupied.has(key)) {
+          occupied.add(key);
+          result.push(rect);
+        }
+      }
+    }
+  }
+  return result;
+}
+
+// src/client/floating-toggle.js
+var MARGIN = 16;
+var DRAG_THRESHOLD = 6;
+var WATCH_DELAY = 250;
+var INTERACTIVE2 = 'button,[role="button"],[role="switch"],a[href],input[type="button"],input[type="submit"]';
+function readFloatingPosition(storage) {
+  try {
+    const value = JSON.parse((storage ?? globalThis.localStorage).getItem(STORAGE.surfacePosition) ?? "null");
+    return value?.version === 1 && [value.x, value.y].every((n) => Number.isFinite(n) && n >= 0 && n <= 1) ? { x: value.x, y: value.y } : null;
+  } catch {
+    return null;
+  }
+}
+function floatingBounds(win, node) {
+  const view = win.visualViewport;
+  const style = win.getComputedStyle(node);
+  const safe = (edge) => Math.max(0, parseFloat(style.getPropertyValue(`--bt-float-safe-${edge}`)) || 0);
+  const left = view?.offsetLeft ?? 0;
+  const top = view?.offsetTop ?? 0;
+  return {
+    left: left + MARGIN + safe("left"),
+    top: top + MARGIN + safe("top"),
+    right: left + (view?.width ?? win.innerWidth) - MARGIN - safe("right"),
+    bottom: top + (view?.height ?? win.innerHeight) - MARGIN - safe("bottom")
+  };
+}
+var fromAnchor = (anchor, size, bounds) => anchor ? {
+  x: bounds.left + anchor.x * Math.max(0, bounds.right - bounds.left - size.width),
+  y: bounds.top + anchor.y * Math.max(0, bounds.bottom - bounds.top - size.height)
+} : { x: bounds.right - size.width, y: bounds.bottom - size.height - 64 };
+var toAnchor = (point, size, bounds) => ({
+  x: Math.max(0, Math.min(1, (point.x - bounds.left) / Math.max(1, bounds.right - bounds.left - size.width))),
+  y: Math.max(0, Math.min(1, (point.y - bounds.top) / Math.max(1, bounds.bottom - bounds.top - size.height)))
+});
+function installFloatingToggle(node, { window: win = window, storage, obstacles = () => floatingObstacles(node.ownerDocument, node) } = {}) {
+  const doc = node.ownerDocument;
+  const styleKeys = ["left", "top", "right", "bottom", "translate"];
+  const before = styleKeys.map((key2) => node.style.getPropertyValue(key2));
+  const localStorage2 = () => storage ?? win.localStorage;
+  let anchor;
+  try {
+    anchor = readFloatingPosition(localStorage2());
+  } catch {
+    anchor = null;
+  }
+  let point = null;
+  let lastBounds = "";
+  let drag = null;
+  let suppressUntil = 0;
+  let timer = 0;
+  let frame = 0;
+  let disposed = false;
+  const sizeOf = () => ({ width: node.offsetWidth, height: node.offsetHeight });
+  const apply2 = (next) => {
+    if (point?.x === next.x && point?.y === next.y) return;
+    point = next;
+    node.style.left = "0px";
+    node.style.top = "0px";
+    node.style.right = "auto";
+    node.style.bottom = "auto";
+    node.style.translate = `${next.x}px ${next.y}px`;
+  };
+  const save = () => {
+    anchor = toAnchor(point, sizeOf(), floatingBounds(win, node));
+    try {
+      localStorage2().setItem(STORAGE.surfacePosition, JSON.stringify({ version: 1, ...anchor }));
+    } catch {
+    }
+  };
+  const measure = () => {
+    if (disposed || drag || doc.hidden) return;
+    const size = sizeOf();
+    if (size.width <= 0 || size.height <= 0) return;
+    const bounds = floatingBounds(win, node);
+    const signature = JSON.stringify(bounds);
+    const wanted = point === null || lastBounds !== signature ? fromAnchor(anchor, size, bounds) : point;
+    lastBounds = signature;
+    apply2(placeFloating(wanted, size, bounds, obstacles()));
+  };
+  const schedule = () => {
+    if (disposed || timer || frame) return;
+    timer = win.setTimeout(() => {
+      timer = 0;
+      frame = win.requestAnimationFrame(() => {
+        frame = 0;
+        measure();
+      });
+    }, WATCH_DELAY);
+  };
+  const release = (id) => {
+    try {
+      if (node.hasPointerCapture?.(id)) node.releasePointerCapture(id);
+    } catch {
+    }
+  };
+  const finish = (cancelled) => {
+    const ended = drag;
+    if (!ended) return;
+    drag = null;
+    delete node.dataset.floatingDragging;
+    release(ended.id);
+    if (ended.moved) {
+      suppressUntil = Date.now() + 800;
+      if (cancelled) apply2(clampPoint(ended.origin, sizeOf(), floatingBounds(win, node)));
+      else {
+        apply2(placeFloating(point, sizeOf(), floatingBounds(win, node), obstacles()));
+        save();
+      }
+    }
+    schedule();
+  };
+  const down = (event) => {
+    if (drag || event.button !== 0 || event.isPrimary === false) return;
+    suppressUntil = 0;
+    const box = node.getBoundingClientRect();
+    drag = { id: event.pointerId, x: event.clientX, y: event.clientY, origin: { x: box.left, y: box.top }, moved: false };
+    try {
+      node.setPointerCapture(event.pointerId);
+    } catch {
+    }
+  };
+  const move = (event) => {
+    if (!drag || event.pointerId !== drag.id) return;
+    const dx = event.clientX - drag.x;
+    const dy = event.clientY - drag.y;
+    if (!drag.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+    drag.moved = true;
+    node.dataset.floatingDragging = "";
+    event.preventDefault();
+    apply2(clampPoint({ x: drag.origin.x + dx, y: drag.origin.y + dy }, sizeOf(), floatingBounds(win, node)));
+  };
+  const up = (event) => {
+    if (drag?.id === event.pointerId) finish(false);
+  };
+  const cancel = (event) => {
+    if (drag?.id === event.pointerId) finish(true);
+  };
+  const click = (event) => {
+    if (event.detail === 0 || Date.now() > suppressUntil) return;
+    suppressUntil = 0;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  };
+  const key = (event) => {
+    if (!event.shiftKey || event.altKey || event.ctrlKey || event.metaKey || drag) return;
+    const delta = { ArrowLeft: [-16, 0], ArrowRight: [16, 0], ArrowUp: [0, -16], ArrowDown: [0, 16] }[event.key];
+    if (!delta || !point) return;
+    event.preventDefault();
+    event.stopPropagation();
+    apply2(placeFloating({ x: point.x + delta[0], y: point.y + delta[1] }, sizeOf(), floatingBounds(win, node), obstacles()));
+    save();
+  };
+  const blur = () => finish(true);
+  const visibility = () => {
+    if (doc.hidden) finish(true);
+    else schedule();
+  };
+  node.addEventListener("pointerdown", down);
+  win.addEventListener("pointermove", move, { passive: false });
+  win.addEventListener("pointerup", up);
+  win.addEventListener("pointercancel", cancel);
+  node.addEventListener("lostpointercapture", cancel);
+  node.addEventListener("click", click, true);
+  node.addEventListener("keydown", key);
+  win.addEventListener("blur", blur);
+  win.addEventListener("resize", schedule);
+  doc.addEventListener("scroll", schedule, { capture: true, passive: true });
+  doc.addEventListener("visibilitychange", visibility);
+  win.visualViewport?.addEventListener("resize", schedule);
+  win.visualViewport?.addEventListener("scroll", schedule);
+  const resize = win.ResizeObserver ? new win.ResizeObserver(schedule) : null;
+  resize?.observe(node);
+  const mutations = win.MutationObserver ? new win.MutationObserver((records) => {
+    const interactive = (element) => element.nodeType === 1 && (element.matches(INTERACTIVE2) || element.querySelector(INTERACTIVE2) || element.shadowRoot);
+    if (records.some((record) => !node.contains(record.target) && (record.type === "attributes" ? interactive(record.target) : [...record.addedNodes, ...record.removedNodes].some(interactive)))) schedule();
+  }) : null;
+  mutations?.observe(doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "style", "hidden", "aria-hidden", "open", "popover"] });
+  const interval = win.setInterval(() => {
+    if (!doc.hidden) schedule();
+  }, 1e3);
+  measure();
+  return () => {
+    disposed = true;
+    if (drag) {
+      const id = drag.id;
+      drag = null;
+      release(id);
+    }
+    delete node.dataset.floatingDragging;
+    win.clearTimeout(timer);
+    win.clearInterval(interval);
+    if (frame) win.cancelAnimationFrame(frame);
+    resize?.disconnect();
+    mutations?.disconnect();
+    node.removeEventListener("pointerdown", down);
+    win.removeEventListener("pointermove", move);
+    win.removeEventListener("pointerup", up);
+    win.removeEventListener("pointercancel", cancel);
+    node.removeEventListener("lostpointercapture", cancel);
+    node.removeEventListener("click", click, true);
+    node.removeEventListener("keydown", key);
+    win.removeEventListener("blur", blur);
+    win.removeEventListener("resize", schedule);
+    doc.removeEventListener("scroll", schedule, true);
+    doc.removeEventListener("visibilitychange", visibility);
+    win.visualViewport?.removeEventListener("resize", schedule);
+    win.visualViewport?.removeEventListener("scroll", schedule);
+    styleKeys.forEach((name, i) => {
+      if (before[i]) node.style.setProperty(name, before[i]);
+      else node.style.removeProperty(name);
+    });
+  };
+}
+
 // src/client/sidebar.js
 var import_react34 = require("react");
 var import_react_dom5 = require("react-dom");
@@ -28384,6 +28769,8 @@ function FooterAccount(props) {
   return (0, import_react34.createElement)("span", { className: "bt-foot-account" }, (0, import_react34.createElement)(AccountLauncher, { ...props, seat: false }));
 }
 function SurfaceToggle({ useSurface, useRoster, actions }) {
+  const ref = (0, import_react34.useRef)(null);
+  (0, import_react34.useLayoutEffect)(() => ref.current ? installFloatingToggle(ref.current) : void 0, []);
   const mode = useSurface((value) => value.mode);
   const ready = useRoster((value) => value.ready);
   useReportReady(mode === "agent" && ready);
@@ -28391,12 +28778,15 @@ function SurfaceToggle({ useSurface, useRoster, actions }) {
   return (0, import_react_dom5.createPortal)((0, import_react34.createElement)(
     "button",
     {
+      ref,
       type: "button",
       className: "bt-surface-toggle",
       role: "switch",
       "aria-label": t("DS Bot mode"),
       "aria-checked": bot,
-      title: bot ? t("Switch to native mode") : t("Switch to Bot mode"),
+      "aria-description": t("Drag to move, or use Shift + arrow keys."),
+      title: `${bot ? t("Switch to native mode") : t("Switch to Bot mode")}
+${t("Drag to move, or use Shift + arrow keys.")}`,
       onClick: () => actions.setSurface(bot ? "agent" : "bot")
     },
     (0, import_react34.createElement)(BotMark, { look: MAIN_LOOK, size: 20 }),
@@ -28405,9 +28795,10 @@ function SurfaceToggle({ useSurface, useRoster, actions }) {
   ), document.body);
 }
 var SURFACE_TOGGLE_CSS = `
-.bt-surface-toggle{--bt-main:var(--dsw-alias-bg-base);--bt-ink:var(--dsw-alias-label-primary);--bt-line-2:color-mix(in srgb,var(--bt-ink) 15%,transparent);--bt-hover:color-mix(in srgb,var(--bt-ink) 9%,var(--bt-main));position:fixed;z-index:45;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 12px;border:.5px solid var(--bt-line-2);border-radius:999px;background:var(--bt-main);color:var(--bt-ink);box-shadow:0 2px 8px -1px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);font-family:var(--dsw-font-family,inherit);font-size:13px;line-height:18px;font-weight:500;white-space:nowrap;cursor:pointer;pointer-events:auto;-webkit-app-region:no-drag;transition:background-color .12s ease,scale ${SPRING_TAP.duration}ms ${SPRING_TAP.easing}}
+.bt-surface-toggle{--bt-float-safe-left:env(safe-area-inset-left,0px);--bt-float-safe-top:env(safe-area-inset-top,0px);--bt-float-safe-right:env(safe-area-inset-right,0px);--bt-float-safe-bottom:env(safe-area-inset-bottom,0px);--bt-main:var(--dsw-alias-bg-base);--bt-ink:var(--dsw-alias-label-primary);--bt-line-2:color-mix(in srgb,var(--bt-ink) 15%,transparent);--bt-hover:color-mix(in srgb,var(--bt-ink) 9%,var(--bt-main));position:fixed;z-index:45;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 12px;border:.5px solid var(--bt-line-2);border-radius:999px;background:var(--bt-main);color:var(--bt-ink);box-shadow:0 2px 8px -1px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);font-family:var(--dsw-font-family,inherit);font-size:13px;line-height:18px;font-weight:500;white-space:nowrap;cursor:grab;pointer-events:auto;touch-action:none;user-select:none;-webkit-app-region:no-drag;transition:background-color .12s ease,scale ${SPRING_TAP.duration}ms ${SPRING_TAP.easing},translate ${SPRING_SHAPE.duration}ms ${SPRING_SHAPE.easing}}
 .bt-surface-toggle:hover{background:var(--bt-hover)}
 .bt-surface-toggle:active{scale:.96}
+.bt-surface-toggle[data-floating-dragging]{cursor:grabbing;scale:1;transition:none}
 .bt-surface-toggle:focus-visible{outline:2px solid var(--bt-accent,var(--bt-ink));outline-offset:2px}
 .bt-surface-toggle .bt-mark{--bt-ink-deepseek:currentColor;display:inline-flex;flex:none;line-height:0}
 .bt-surface-toggle .bt-mark svg{width:100%;height:100%;overflow:visible}
@@ -29202,7 +29593,7 @@ function trimmed(value) {
   const text = value >= 100 ? value.toFixed(0) : value >= 10 ? value.toFixed(1) : value.toFixed(2);
   return text.includes(".") ? text.replace(/\.?0+$/, "") : text;
 }
-function compact(count) {
+function compact2(count) {
   for (const [size, unit] of [[1e9, "B"], [1e6, "M"], [1e3, "K"]]) {
     if (count >= size * 0.9995) return `${trimmed(count / size)}${unit}`;
   }
@@ -29356,7 +29747,7 @@ function Stats({ range, total, previous }) {
       (0, import_react39.createElement)(
         "span",
         { className: "bt-us-stat-value" },
-        compact(shown),
+        compact2(shown),
         (0, import_react39.createElement)("small", null, t("tokens")),
         change === null ? null : (0, import_react39.createElement)(
           "span",
@@ -29366,7 +29757,7 @@ function Stats({ range, total, previous }) {
       )
     ),
     cell(t("Cache hit rate"), `${hitRate(total)}%`),
-    cell(t("Output"), compact(total.output)),
+    cell(t("Output"), compact2(total.output)),
     cell(t("Calls"), full(total.calls))
   );
 }
@@ -29398,7 +29789,7 @@ function Chart({ range, columns: columns2, series, tipSeries, by, onBy, onPick }
       (0, import_react39.createElement)(
         "div",
         { className: "bt-us-plot", "data-hover": hover === null ? void 0 : "", onMouseLeave: () => setHover(null) },
-        [1, 0.5].map((level) => (0, import_react39.createElement)("div", { key: level, className: "bt-us-grid", style: { bottom: `${level * 100}%` } }, (0, import_react39.createElement)("span", null, compact(top * level)))),
+        [1, 0.5].map((level) => (0, import_react39.createElement)("div", { key: level, className: "bt-us-grid", style: { bottom: `${level * 100}%` } }, (0, import_react39.createElement)("span", null, compact2(top * level)))),
         (0, import_react39.createElement)("div", { className: "bt-us-grid bt-us-base", style: { bottom: 0 } }, (0, import_react39.createElement)("span", null, "0")),
         (0, import_react39.createElement)(
           "div",
@@ -29424,7 +29815,7 @@ function Chart({ range, columns: columns2, series, tipSeries, by, onBy, onPick }
             { key, className: "bt-us-tip-row" },
             (0, import_react39.createElement)("i", { className: "bt-us-dot", style: { background: tipOf.get(key)?.fill } }),
             (0, import_react39.createElement)("span", null, tipOf.get(key)?.name),
-            (0, import_react39.createElement)("b", null, compact(value))
+            (0, import_react39.createElement)("b", null, compact2(value))
           ))
         ) : null
       ),
@@ -29473,7 +29864,7 @@ function Row2({ kind, glyph, name, sub, sum, whole, fill: fill2, index, onClick 
       ),
       (0, import_react39.createElement)("span", { className: "bt-us-track" }, (0, import_react39.createElement)("span", { style: { width: `${width}%`, background: fill2 } }))
     ),
-    (0, import_react39.createElement)("span", { className: "bt-us-row-num" }, (0, import_react39.createElement)("b", null, compact(sum.total)), (0, import_react39.createElement)("small", null, `${percent2(sum.total, whole)}%`))
+    (0, import_react39.createElement)("span", { className: "bt-us-row-num" }, (0, import_react39.createElement)("b", null, compact2(sum.total)), (0, import_react39.createElement)("small", null, `${percent2(sum.total, whole)}%`))
   );
 }
 function ListCard({ title, count, index, children }) {

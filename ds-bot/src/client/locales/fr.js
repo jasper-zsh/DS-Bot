@@ -2,6 +2,7 @@
 
 export const FR = {
   "DS Bot mode": "Mode DS Bot",
+  "Drag to move, or use Shift + arrow keys.": "Faites glisser pour déplacer, ou utilisez Maj + les flèches.",
   "Switch to native mode": "Passer au mode natif",
   "Switch to Bot mode": "Passer au mode Bot",
   "Android beta": "Android bêta",

@@ -17,6 +17,7 @@ import { showsDshRow } from './dsh-offer.js'
 import { quietly } from './diagnostics.js'
 import { frameLayout, dragColumn, RAIL_WIDTH, FALLBACK_SIDEBAR_WIDTH, userSidebarToggle } from './frame-layout.js'
 import { chatRoom, dshCollapsed } from './frame-watch.js'
+import { installFloatingToggle } from './floating-toggle.js'
 
 // -------------------------------------------------------------------------
 // Sidebar
@@ -1215,15 +1216,18 @@ export function FooterAccount(props) {
 
 // This entry outlives both surface groups, including their styles and sidebars.
 export function SurfaceToggle({ useSurface, useRoster, actions }) {
+  const ref = useRef(null)
+  useLayoutEffect(() => ref.current ? installFloatingToggle(ref.current) : undefined, [])
   const mode = useSurface(value => value.mode)
   const ready = useRoster(value => value.ready)
   // Agent mode has no team sidebar to report the desktop app's first state.
   useReportReady(mode === 'agent' && ready)
   const bot = mode === 'bot'
   return createPortal(h('button', {
-    type: 'button', className: 'bt-surface-toggle', role: 'switch',
+    ref, type: 'button', className: 'bt-surface-toggle', role: 'switch',
     'aria-label': t('DS Bot mode'), 'aria-checked': bot,
-    title: bot ? t('Switch to native mode') : t('Switch to Bot mode'),
+    'aria-description': t('Drag to move, or use Shift + arrow keys.'),
+    title: `${bot ? t('Switch to native mode') : t('Switch to Bot mode')}\n${t('Drag to move, or use Shift + arrow keys.')}`,
     onClick: () => actions.setSurface(bot ? 'agent' : 'bot'),
   },
   h(BotMark, { look: MAIN_LOOK, size: 20 }),
@@ -1234,9 +1238,10 @@ export function SurfaceToggle({ useSurface, useRoster, actions }) {
 // Read shell tokens locally: Agent mode withdraws the Bot theme, and this must not
 // repaint the native page. Leave room below for the conversation's composer.
 export const SURFACE_TOGGLE_CSS = `
-.bt-surface-toggle{--bt-main:var(--dsw-alias-bg-base);--bt-ink:var(--dsw-alias-label-primary);--bt-line-2:color-mix(in srgb,var(--bt-ink) 15%,transparent);--bt-hover:color-mix(in srgb,var(--bt-ink) 9%,var(--bt-main));position:fixed;z-index:45;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 12px;border:.5px solid var(--bt-line-2);border-radius:999px;background:var(--bt-main);color:var(--bt-ink);box-shadow:0 2px 8px -1px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);font-family:var(--dsw-font-family,inherit);font-size:13px;line-height:18px;font-weight:500;white-space:nowrap;cursor:pointer;pointer-events:auto;-webkit-app-region:no-drag;transition:background-color .12s ease,scale ${SPRING_TAP.duration}ms ${SPRING_TAP.easing}}
+.bt-surface-toggle{--bt-float-safe-left:env(safe-area-inset-left,0px);--bt-float-safe-top:env(safe-area-inset-top,0px);--bt-float-safe-right:env(safe-area-inset-right,0px);--bt-float-safe-bottom:env(safe-area-inset-bottom,0px);--bt-main:var(--dsw-alias-bg-base);--bt-ink:var(--dsw-alias-label-primary);--bt-line-2:color-mix(in srgb,var(--bt-ink) 15%,transparent);--bt-hover:color-mix(in srgb,var(--bt-ink) 9%,var(--bt-main));position:fixed;z-index:45;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 12px;border:.5px solid var(--bt-line-2);border-radius:999px;background:var(--bt-main);color:var(--bt-ink);box-shadow:0 2px 8px -1px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);font-family:var(--dsw-font-family,inherit);font-size:13px;line-height:18px;font-weight:500;white-space:nowrap;cursor:grab;pointer-events:auto;touch-action:none;user-select:none;-webkit-app-region:no-drag;transition:background-color .12s ease,scale ${SPRING_TAP.duration}ms ${SPRING_TAP.easing},translate ${SPRING_SHAPE.duration}ms ${SPRING_SHAPE.easing}}
 .bt-surface-toggle:hover{background:var(--bt-hover)}
 .bt-surface-toggle:active{scale:.96}
+.bt-surface-toggle[data-floating-dragging]{cursor:grabbing;scale:1;transition:none}
 .bt-surface-toggle:focus-visible{outline:2px solid var(--bt-accent,var(--bt-ink));outline-offset:2px}
 .bt-surface-toggle .bt-mark{--bt-ink-deepseek:currentColor;display:inline-flex;flex:none;line-height:0}
 .bt-surface-toggle .bt-mark svg{width:100%;height:100%;overflow:visible}

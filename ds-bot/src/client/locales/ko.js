@@ -2,6 +2,7 @@
 
 export const KO = {
   "DS Bot mode": "DS Bot 모드",
+  "Drag to move, or use Shift + arrow keys.": "드래그하거나 Shift + 방향키로 이동하세요.",
   "Switch to native mode": "기본 모드로 전환",
   "Switch to Bot mode": "Bot 모드로 전환",
   "Android beta": "Android 베타",
